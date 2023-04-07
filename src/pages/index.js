@@ -14,6 +14,9 @@ export default function Home() {
   const [currentAccount, setCurrentAccount] = useState("");
   const [provider, setProvider] = useState(null);
   const [contract, setContract] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [balance, setBalance] = useState(null);
+
   const [stakingAmount, setStakingAmount] = useState(0);
   const [network, setNetwork] = useState("");
 
@@ -35,17 +38,18 @@ export default function Home() {
       });
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(provider);
+      const signer = provider.getSigner();
 
       const contractAddress = "0xAB8b5C5c17d84836cba8A86A083052Ff7d569fAC";
       const abi = Abi;
-      const contract = new ethers.Contract(
-        contractAddress,
-        abi,
-        provider.getSigner()
-      );
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+      setProvider(provider);
+      setSigner(signer);
       setContract(contract);
       setIsConnected(true);
+
+      const balance = await contract.balanceOf(signer.getAddress());
+      setBalance(balance);
     } catch (error) {
       console.log(error);
     }
@@ -241,7 +245,7 @@ export default function Home() {
             <Link href="https://sepolia-faucet.pk910.de">GAS FAUCET </Link>
             <Link href="https://sepolia-faucet.pk910.de">For gas</Link>
           </div>
-          <div className="flex justify-center ">
+          <div className="flex justify-center font-bold mt-10 ">
             <div>
               <button>
                 NOT STAKED - To Apply for jobs, please Stake :: 1 JCTUSDT
@@ -254,14 +258,58 @@ export default function Home() {
         ""
       )}
       <div className="  mt-40 ">
-        <div className="border-[1px] rounded-md w-[500px] py-10 mx-60"></div>
+        <div className="border-[1px] rounded-md w-[500px] py-10 px-5 mx-60 flex justify-center">
+          {isConnected ? (
+            <div>
+              <h1 className="font-bold text-lg text-center">
+                Social media manager
+              </h1>
+              <p className="font-bold text-xl mt-5 text-center">Job Crypt</p>
+              <p className="mt-10 text-sm">
+                JobCrypt is the first fully decentralized Job board hosted on
+                the blockchain and web3
+              </p>
+              <p className="mt-5 text-sm">
+                Job Location : Geo-Remote | Work Type : Full-time | Payment Type
+                : crypto | Location Type : Geo-Remote | Location Support : N/A
+              </p>
+            </div>
+          ) : (
+            ""
+          )}
+        </div>
         <div className="flex justify-center gap-2 items-start mt-2">
-          <div className="border-[1px] rounded-md w-[500px] text-center text-2xl font-bold py-10 ">
-            About the Role
+          <div className="border-[1px] rounded-md w-[500px] px-5 py-10 ">
+            <h2 className="font-bold  text-2xl text-center"> About the Role</h2>
+            {isConnected ? (
+              <span>
+                <p>
+                  Looking for an Experienced socialedia manager with atleast two
+                  years experience
+                </p>
+                <p className="font-bold mt-5">
+                  First posted : Thu Apr 06 2023 11:49:36 GMT+0100 (West Africa
+                  Standard Time)
+                </p>
+              </span>
+            ) : (
+              ""
+            )}
           </div>
           <div>
             <div className="w-[350px] py-10 border-[1px] rounded-md ">
               <p className=" text-center font-bold">Key Skills</p>
+              {isConnected ? (
+                <span>
+                  <p className="text-center"> Social media management skill</p>
+                  <h2 className="text-xl font-bold text-blue-500 text-center">
+                    {" "}
+                    Apply Here
+                  </h2>
+                </span>
+              ) : (
+                ""
+              )}
               <div className="flex items-center text-center mt-10 justify-center  ">
                 <Icon icon="mingcute:youtube-line" />
                 <Link href="https://www.youtube.com/watch?v=iW9EAOCsgJc&feature=youtu.be">
