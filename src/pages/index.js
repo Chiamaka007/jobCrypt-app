@@ -278,7 +278,7 @@ export default function Home() {
               )}
             </div>
           ) : (
-            "unstake"
+            ""
           )}
           <span className="flex justify-center divide-x-2 divide-black text-lg ">
             <Link href="/employer" className="pr-5">
