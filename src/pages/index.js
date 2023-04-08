@@ -41,6 +41,7 @@ export default function Home() {
         method: "eth_requestAccounts",
       });
       setIsConnected(true);
+      setCurrentAccount(accounts);
     } catch (error) {
       console.log(error);
     }
@@ -98,7 +99,7 @@ export default function Home() {
     }
 
     const accounts = await ethereum.request({ method: "eth_accounts" });
-    setCurrentAccount(accounts);
+    // setCurrentAccount(accounts);
     // if (accounts) {
     //   const account = accounts;
     //   console.log("Found an authorized account:", account);
