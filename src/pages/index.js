@@ -41,6 +41,7 @@ export default function Home() {
         method: "eth_requestAccounts",
       });
       setIsConnected(true);
+
       setCurrentAccount(accounts);
     } catch (error) {
       console.log(error);
@@ -303,7 +304,7 @@ export default function Home() {
               For posting
             </Link>
             <Link
-              href="https://sepolia-faucet.pk910.de"
+              href="https://sepoliafaucet.com/"
               className="flex items-center"
             >
               <Icon icon="fa6-solid:faucet-drip" />
