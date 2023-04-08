@@ -12,12 +12,16 @@ const networks = {
 export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
-  const [provider, setProvider] = useState(null);
-  const [contract, setContract] = useState(null);
-  const [signer, setSigner] = useState(null);
+  // const [provider, setProvider] = useState(null);
+  // const [contract, setContract] = useState(null);
+  // const [signer, setSigner] = useState(null);
   const [balance, setBalance] = useState(null);
+  const [stakeBalance, setStakeBalance] = useState(null);
+  const [applyBalance, setApplyBalance] = useState(null);
 
-  const [stakingAmount, setStakingAmount] = useState(0);
+  const [depositValue, setDepositValue] = useState("0.000123");
+  const [stakeValue, setStakeValue] = useState("0.000456");
+  const [applyValue, setApplyValue] = useState("0.000789");
   const [network, setNetwork] = useState("");
 
   useEffect(() => {
@@ -36,20 +40,7 @@ export default function Home() {
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      const contractAddress = "0xAB8b5C5c17d84836cba8A86A083052Ff7d569fAC";
-      const abi = Abi;
-      const contract = new ethers.Contract(contractAddress, abi, signer);
-      setProvider(provider);
-      setSigner(signer);
-      setContract(contract);
       setIsConnected(true);
-
-      const balance = await contract.balanceOf(signer.getAddress());
-      setBalance(balance);
     } catch (error) {
       console.log(error);
     }
@@ -96,17 +87,6 @@ export default function Home() {
     }
   };
 
-  const renderNotConnectedContainer = () => (
-    <div className="connect-wallet-container">
-      {/* Call the connectWallet function we just wrote when the button is clicked */}
-      <button
-        onClick={connectWallet}
-        className="cta-button connect-wallet-button"
-      >
-        Connect Wallet
-      </button>
-    </div>
-  );
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
 
@@ -138,28 +118,63 @@ export default function Home() {
     }
   };
 
-  const stakeFunds = async () => {
-    if (!provider || !contract || stakingAmount <= 0) {
-      return;
-    }
-
-    const signer = provider.getSigner();
-    const balance = await signer.getBalance();
-    if (balance.lt(stakingAmount)) {
-      console.error("Insufficient balance");
-      setStakingAmount("0.00123");
-      return;
-    }
-
-    try {
-      const transaction = await contract.stake({ value: stakingAmount });
-      await transaction.wait();
-      console.log("Staked successfully");
-    } catch (err) {
-      console.error(err);
-    }
+  const handleDepositChange = (e) => {
+    setDepositValue(e.target.value);
   };
 
+  const handleDepositSubmit = async (e) => {
+    e.preventDefault();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contractAddress = "0x6e3B05205Fe4C565F957734E6f7Fe005974AA8D5";
+    const abi = Abi;
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+
+    const ethValue = ethers.utils.parseEther(depositValue);
+    const deposit = await contract.ApproveJctUsdt({ value: ethValue });
+    await deposit.wait();
+    const balance = await provider.getBalance(contractAddress);
+    setBalance(ethers.utils.formatEther(balance));
+  };
+
+  const handleStakeChange = (e) => {
+    setStakeValue(e.target.value);
+  };
+
+  const handleStakeSubmit = async (e) => {
+    e.preventDefault();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contractAddress = "0x6e3B05205Fe4C565F957734E6f7Fe005974AA8D5";
+    const abi = Abi;
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+
+    const ethValue = ethers.utils.parseEther(stakeValue);
+    const stake = await contract.stake({ value: ethValue });
+    await stake.wait();
+    const stakeBalance = await provider.getBalance(contractAddress);
+    console.log(stakeBalance);
+    setStakeBalance(ethers.utils.formatEther(stakeBalance));
+  };
+  const handleApplyChange = (e) => {
+    setApplyValue(e.target.value);
+  };
+
+  const handleApplySubmit = async (e) => {
+    e.preventDefault();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contractAddress = "0x6e3B05205Fe4C565F957734E6f7Fe005974AA8D5";
+    const abi = Abi;
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+
+    const ethValue = ethers.utils.parseEther(applyValue);
+    const apply = await contract.applyForJob({ value: ethValue });
+    await apply.wait();
+    const applyBalance = await provider.getBalance(contractAddress);
+    console.log(applyBalance);
+    setApplyBalance(ethers.utils.formatEther(applyBalance));
+  };
   return (
     <>
       <div className="text-xl mt-10 ">
@@ -212,16 +227,56 @@ export default function Home() {
           </p>
           {isConnected == true ? (
             <div className="flex justify-between">
-              <p
-                className="bg-black rounded-full text-white"
-                onClick={stakeFunds}
-              >
-                Approve 1 JCTUSDT
-              </p>
-              <p>Approve first to stake</p>
+              {balance ? (
+                <form onSubmit={handleStakeSubmit}>
+                  <div className="mb-3">
+                    <input
+                      type="number"
+                      className="form-control hidden"
+                      disabled
+                      placeholder="0"
+                      onChange={handleStakeChange}
+                      value={stakeValue}
+                    />
+                  </div>
+                  <span className="flex justify-between ">
+                    <button className=" ">Approve Now Stake</button>
+                    <button
+                      type="submit"
+                      className="border-2 border-black rounded-full px-10"
+                    >
+                      Stake
+                    </button>
+                  </span>
+                </form>
+              ) : (
+                <form onSubmit={handleDepositSubmit}>
+                  <div className="mb-3">
+                    <input
+                      type="number"
+                      className="form-control hidden"
+                      disabled
+                      placeholder="0"
+                      onChange={handleDepositChange}
+                      value={depositValue}
+                    />
+                  </div>
+                  <span className="flex justify-between ">
+                    <button
+                      type="submit"
+                      className=" rounded-full text-white bg-black p-1"
+                    >
+                      Approve 1 JctUsdt
+                    </button>
+                    <button className="btn btn-success">
+                      Approve first to stake
+                    </button>
+                  </span>
+                </form>
+              )}
             </div>
           ) : (
-            ""
+            "unstake"
           )}
           <span className="flex justify-center divide-x-2 divide-black text-lg ">
             <Link href="/employer" className="pr-5">
@@ -234,22 +289,50 @@ export default function Home() {
       {isConnected == true ? (
         <>
           <div className="flex justify-center text-xl gap-1 mt-2 font-semibold">
-            <Link href="https://sepolia-faucet.pk910.de">
+            <Link
+              href="https://sepolia-faucet.pk910.de"
+              className="flex items-center"
+            >
+              <Icon icon="fa6-solid:faucet-drip" /> JC TEST USDC FAUCET{" "}
+            </Link>
+            <Link
+              href="https://sepolia-faucet.pk910.de"
+              className="text-green-500"
+            >
+              For posting
+            </Link>
+            <Link
+              href="https://sepolia-faucet.pk910.de"
+              className="flex items-center"
+            >
+              <Icon icon="fa6-solid:faucet-drip" />
               JC TEST USDC FAUCET{" "}
             </Link>
-            <Link href="https://sepolia-faucet.pk910.de">For posting</Link>
-            <Link href="https://sepolia-faucet.pk910.de">
-              JC TEST USDC FAUCET{" "}
+            <Link href="https://sepolia-faucet.pk910.de"> For Staking</Link>
+            <Link
+              href="https://sepolia-faucet.pk910.de"
+              className="flex items-center"
+            >
+              {" "}
+              <Icon icon="fa6-solid:faucet-drip" />
+              GAS FAUCET{" "}
             </Link>
-            <Link href="https://sepolia-faucet.pk910.de">For posting</Link>
-            <Link href="https://sepolia-faucet.pk910.de">GAS FAUCET </Link>
-            <Link href="https://sepolia-faucet.pk910.de">For gas</Link>
+            <Link
+              href="https://sepolia-faucet.pk910.de"
+              className="text-yellow-500"
+            >
+              For gas
+            </Link>
           </div>
           <div className="flex justify-center font-bold mt-10 ">
             <div>
-              <button>
-                NOT STAKED - To Apply for jobs, please Stake :: 1 JCTUSDT
-              </button>
+              {stakeBalance ? (
+                <button className="text-center">STAKED 1 JCTUSDT</button>
+              ) : (
+                <button>
+                  NOT STAKED - To Apply for jobs, please Stake :: 1 JCTUSDT
+                </button>
+              )}
               <p>Connected Wallet:: {currentAccount} </p>
             </div>
           </div>
@@ -269,7 +352,7 @@ export default function Home() {
                 JobCrypt is the first fully decentralized Job board hosted on
                 the blockchain and web3
               </p>
-              <p className="mt-5 text-sm">
+              <p className="mt-5 text-sm font-bold">
                 Job Location : Geo-Remote | Work Type : Full-time | Payment Type
                 : crypto | Location Type : Geo-Remote | Location Support : N/A
               </p>
@@ -302,10 +385,33 @@ export default function Home() {
               {isConnected ? (
                 <span>
                   <p className="text-center"> Social media management skill</p>
-                  <h2 className="text-xl font-bold text-blue-500 text-center">
-                    {" "}
-                    Apply Here
-                  </h2>
+                  {applyBalance ? (
+                    <p className="font-bold text-green-500 text-center">
+                      Apply Details: hr@jobcrypt.com
+                    </p>
+                  ) : (
+                    <div className="flex justify-center">
+                      <form onSubmit={handleApplySubmit}>
+                        <div className="mb-3">
+                          <input
+                            type="number"
+                            className="form-control hidden"
+                            disabled
+                            placeholder="0"
+                            onChange={handleApplyChange}
+                            value={applyValue}
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="text-2xl text-blue-500"
+                        >
+                          Apply Here
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </span>
               ) : (
                 ""
@@ -319,6 +425,7 @@ export default function Home() {
             </div>
             <div className="w-[350px] py-10 border-[1px] rounded-md mt-2 ">
               <p className=" text-center font-bold">Job Categories</p>
+              {applyBalance ? <p className="text-center">Social</p> : ""}
             </div>
           </div>
         </div>
